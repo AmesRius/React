@@ -6,9 +6,10 @@ import './App.css'
 
 import Timer from './components/Timer'
 
+// App.jsx
 function App() {
   return (
-    <div className="flex h-screen items-center justify-center bg-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 p-4">
       <Timer />
     </div>
   )

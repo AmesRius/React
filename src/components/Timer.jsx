@@ -1,3 +1,5 @@
+// Timer.jsx の一番外側
+<div className="flex flex-col items-center gap-8 p-10 bg-slate-800/90 backdrop-blur rounded-3xl shadow-2xl w-full max-w-md border border-slate-700"></div>
 import { useState, useEffect, useRef } from 'react'
 
 function Timer() {
@@ -18,6 +20,9 @@ function Timer() {
 
     // setIntervalのIDを保持（再描画されても消えないようuseRefを使う）
     const intervalRef = useRef(null)
+
+    // ボタンの共通クラス
+    const baseButtonClass = "px-6 py-2 rounded-lg font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
 
     // isRunningがtrueの間、1秒ごとにremainingSecondsを減らす
     useEffect(() => {
@@ -43,6 +48,15 @@ function Timer() {
         const minutes = Math.floor(totalSeconds / 60)
         const seconds = totalSeconds % 60
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    }
+
+    // 残り時間の割合に応じて色クラスを返す
+    const getTimeColor = () => {
+        if (totalSeconds === 0) return 'text-white'
+        const ratio = remainingSeconds / totalSeconds
+        if (ratio <= 0.1) return 'text-red-500'
+        if (ratio <= 0.3) return 'text-amber-400'
+        return 'text-white'
     }
 
     const handleStart = () => {
@@ -103,7 +117,6 @@ function Timer() {
     return (
         <div className="flex flex-col items-center gap-6 p-8 bg-slate-800 rounded-2xl shadow-xl w-full max-w-md">
             <h1 className="text-2xl font-bold text-white">カウントダウンタイマー</h1>
-
             {/* 時間入力エリア */}
             <div className="flex items-center gap-2">
                 <input
@@ -128,8 +141,14 @@ function Timer() {
             </div>
 
             {/* 残り時間の大表示 */}
-            <div className="text-6xl font-mono font-bold text-white tabular-nums">
-                {formatTime(remainingSeconds)}
+            <div className="relative flex items-center justify-center">
+                <CircularProgress
+                    progress={totalSeconds === 0 ? 0 : remainingSeconds / totalSeconds}
+                    colorClass={getTimeColor()}
+                />
+                <div className={`absolute text-4xl font-mono font-bold tabular-nums transition-colors duration-500 ${getTimeColor()}`}>
+                    {formatTime(remainingSeconds)}
+                </div>
             </div>
 
             {/* 操作ボタン */}
@@ -137,28 +156,28 @@ function Timer() {
                 {!isRunning ? (
                     <button
                         onClick={handleStart}
-                        className="px-6 py-2 rounded-lg bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition"
+                        className={`${baseButtonClass} bg-emerald-500 text-white hover:bg-emerald-600`}
                     >
                         スタート
                     </button>
                 ) : (
                     <button
                         onClick={handleStop}
-                        className="px-6 py-2 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition"
+                        className={`${baseButtonClass} bg-amber-500 text-white hover:bg-amber-600`}
                     >
                         ストップ
                     </button>
                 )}
                 <button
                     onClick={handleReset}
-                    className="px-6 py-2 rounded-lg bg-slate-600 text-white font-semibold hover:bg-slate-500 transition"
+                    className={`${baseButtonClass} bg-slate-600 text-white hover:bg-slate-500`}
                 >
                     リセット
                 </button>
                 <button
                     onClick={handleCompleteTask}
                     disabled={!isRunning}
-                    className="px-6 py-2 rounded-lg bg-sky-500 text-white font-semibold hover:bg-sky-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className={`${baseButtonClass} bg-sky-500 text-white hover:bg-sky-600`}
                 >
                     タスク完了
                 </button>
@@ -185,6 +204,40 @@ function Timer() {
                 )}
             </div>
         </div>
+    )
+}
+
+function CircularProgress({ progress, colorClass }) {
+    const radius = 90
+    const circumference = 2 * Math.PI * radius
+    const offset = circumference - progress * circumference
+
+    return (
+        <svg width="220" height="220" className="-rotate-90">
+            {/* 背景の円 */}
+            <circle
+                cx="110"
+                cy="110"
+                r={radius}
+                stroke="currentColor"
+                strokeWidth="12"
+                fill="none"
+                className="text-slate-700"
+            />
+            {/* 進捗を表す円 */}
+            <circle
+                cx="110"
+                cy="110"
+                r={radius}
+                stroke="currentColor"
+                strokeWidth="12"
+                fill="none"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+                className={`transition-all duration-1000 ease-linear ${colorClass}`}
+            />
+        </svg>
     )
 }
 
